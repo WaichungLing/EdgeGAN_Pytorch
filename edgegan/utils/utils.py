@@ -12,6 +12,8 @@ pp = pprint.PrettyPrinter()
 
 
 def makedirs(path):
+    if path is None:
+        return
     if not os.path.exists(path):
         os.system('mkdir -p {}'.format(path))
 
