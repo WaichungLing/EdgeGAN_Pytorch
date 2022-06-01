@@ -11,7 +11,7 @@ from edgegan.utils import makedirs
 
 # In SketchyCOCO dataset, the indices for (sheep, cat, giraffe, zebra, dog) are (20, 17, 25, 24, 18)
 
-output_dir = 'images/data'
+output_dir = '../images/data'
 
 
 def transform(img, out_dim=64):
@@ -34,8 +34,8 @@ def transform(img, out_dim=64):
 
 
 def generate_train(classes, args):
-    gt_dir = 'Animals/GT'
-    edge_dir = 'Animals/Edge'
+    gt_dir = '../Animals/GT'
+    edge_dir = '../Animals/Edge'
     for c in classes:
         c_dir = os.path.join(gt_dir, str(c) + '/*.png')
         out_c_dir = os.path.join(output_dir, 'train/' + str(c))
@@ -55,7 +55,7 @@ def generate_train(classes, args):
 
 
 def generate_test(classes, args):
-    sketch_dir = 'Data/Sketch/val'
+    sketch_dir = '../Data/Sketch/val'
     idx = 0
     for c in classes:
         c_dir = os.path.join(sketch_dir, str(c) + '/*.png')

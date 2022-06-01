@@ -7,7 +7,6 @@ __pycache__
 2e-4
 logs_2e-4.nosync
 test_out
-extract_output.py
 images
-GT2RGB.py
+data_preparation/GT2RGB.py
 images.zip

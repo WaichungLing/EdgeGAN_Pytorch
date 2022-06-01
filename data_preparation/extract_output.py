@@ -10,8 +10,8 @@ import numpy as np
 import scipy.misc
 
 def extract(args):
-    print(os.path.join(".", args.inpath))
-    dataroot = os.path.join(".", args.inpath)
+    print(os.path.join("..", args.inpath))
+    dataroot = os.path.join("..", args.inpath)
     cats = [name for name in os.listdir(dataroot) if os.path.isdir(os.path.join(dataroot, name))]
     for cat in cats:
         c_dir = os.path.join(dataroot, cat)+"/*.png"
