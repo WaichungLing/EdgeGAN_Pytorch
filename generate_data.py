@@ -34,8 +34,8 @@ def transform(img, out_dim=64):
 
 
 def generate_train(classes, args):
-    gt_dir = 'Data/GT/train'
-    edge_dir = 'Data/Edge/train'
+    gt_dir = 'Animals/GT'
+    edge_dir = 'Animals/Edge'
     for c in classes:
         c_dir = os.path.join(gt_dir, str(c) + '/*.png')
         out_c_dir = os.path.join(output_dir, 'train/' + str(c))
@@ -56,13 +56,15 @@ def generate_train(classes, args):
 
 def generate_test(classes, args):
     sketch_dir = 'Data/Sketch/val'
+    idx = 0
     for c in classes:
         c_dir = os.path.join(sketch_dir, str(c) + '/*.png')
-        out_c_dir = os.path.join(output_dir, 'test/' + str(c))
+        out_c_dir = os.path.join(output_dir, 'test/' + str(idx))
         makedirs(out_c_dir)
+        idx += 1
 
         for filename in glob.glob(c_dir):
-            f = filename[filename.rfind('/')+1:]
+            f = filename[filename.rfind('/') + 1:]
 
             sk = scipy.misc.imread(filename, mode='RGB')
             trans_sk = transform(sk, args.out_dim)
@@ -75,5 +77,10 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--out_dim', type=int, default=64, help='the dimension of the output image')
     args = parser.parse_args()
-    generate_train([20, 17, 25, 24, 18], args)
-    generate_test([20, 17, 25, 24, 18], args)
+    generate_train([0, 1, 2, 3, 4], args)
+    generate_test([17, 18, 20, 24, 25], args)
+    # img = scipy.misc.imread('sample_test.png')
+    # print(img.shape)
+    # img2 = scipy.misc.imread('sample_test.png')
+    # print(img2.shape)
+

@@ -1,11 +1,12 @@
 import torch
 
 
-def upsample(x, data_format):
+def upsample(x):
     m = torch.nn.Upsample(scale_factor=4, mode='nearest')
     return m(x)
 
 
-def upsample2(x, data_format):
+def upsample2(x):
     output = x.permute(0, 3, 1, 2)
-    return torch.nn.Upsample(scale_factor=4, mode='nearest')
+    m = torch.nn.Upsample(scale_factor=4, mode='nearest')
+    return m(output)

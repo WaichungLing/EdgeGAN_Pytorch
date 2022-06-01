@@ -44,9 +44,9 @@ def main(args):
         'z_dim': args.z_dim,
     }
 
-    #============================#
+    # ============================#
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    #============================#
+    # ============================#
 
     dataset = Dataset(
         args.dataroot, args.dataset,
@@ -109,7 +109,6 @@ if __name__ == '__main__':
     # Multi-class
     parser.add_argument('--multiclasses', type=bool, default=True, help='If use focal loss')
     parser.add_argument('--num_classes', type=int, default=5, help='Number of classes')
-    parser.add_argument('--SPECTRAL_NORM_UPDATE_OPS', type=str, default='spectral_norm_update_ops')  # ?
     parser.add_argument('--SPECTRAL_NORM_UPDATE_OPS', type=str, default='spectral_norm_update_ops')  # ?
 
     args = parser.parse_args()

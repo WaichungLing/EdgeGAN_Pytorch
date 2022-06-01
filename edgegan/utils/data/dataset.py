@@ -15,7 +15,7 @@ def extension_match_recursive(root, exts):
     return result
 
 
-class Dataset():
+class Dataset:
     def __init__(self, dataroot, name, size, batchsize, config, num_classes=None, phase='train'):
         assert phase in ['train', 'test']
         self.batchsize = batchsize
@@ -69,8 +69,7 @@ class Dataset():
         batch_images = np.array(batch).astype(np.float32)
 
         if self.phase == 'train':
-            batch_z = np.random.normal(
-                size=(self.batchsize, self.config['z_dim']))
+            batch_z = np.random.normal(size=(self.batchsize, self.config['z_dim']))
 
             if self.num_classes is not None:
                 def get_class(filePath):
