@@ -2,7 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import warnings
+from edgegan.nn.modules.activation import Prelu
+
 
 def norm(input, is_train, norm='batch',
          epsilon=1e-5, momentum=0.9):
@@ -20,45 +21,56 @@ def norm(input, is_train, norm='batch',
 
     return out
 
+
 def _l2normalize(v, eps=1e-12):
     return v / (torch.sum(v ** 2) ** 0.5 + eps)
 
-def spectral_normed_weight(W, u=None, num_iters=1, update_collection=None, with_sigma=False):
-    W_shape = W.shape.as_list()
-    W_reshaped = W.reshape(-1, W_shape[-1])
 
-    if u is None:
-        u = nn.init.trunc_normal_(torch.tensor(1, W_shape[-1]))
+def truncated_normal_(tensor, mean=0, std=1):
+    size = tensor.shape
+    tmp = tensor.new_empty(size + (4,)).normal_()
+    valid = (tmp < 2) & (tmp > -2)
+    ind = valid.max(-1, keepdim=True)[1]
+    tensor.data.copy_(tmp.gather(-1, ind).squeeze(-1))
+    tensor.data.mul_(std).add_(mean)
+    return tensor
 
-    def power_iteration(i, u_i, v_i):
-        v_ip1 = _l2normalize(torch.matmul(u_i, torch.transpose(W_reshaped)))
-        u_ip1 = _l2normalize(torch.matmul(v_ip1, W_reshaped))
-        return i + 1, u_ip1, v_ip1
 
-    i = 0
-    u_i = u
-    v_i = torch.zeros((1, W_reshaped.shape.as_list()[0]),dtype=torch.float32)
-    while i < num_iters:
-        i,u_i,v_i = power_iteration(i,u_i,v_i)
-    u_final, v_final = u_i, v_i
+def spectral_normed_weight(W, u=None, num_iters=1, with_sigma=False):
+        W_shape = W.shape
+        W_reshaped = torch.reshape(W, (-1, W_shape[-1]))
+        if u is None:
+            u = torch.empty((1, W_shape[-1]))
+            u = truncated_normal_(u)
 
-    if update_collection is None:
-        warnings.warn(
-            'Setting update_collection to None will make u being updated every W execution. This maybe undesirable'
-            '. Please consider using a update collection instead.')
-        sigma = tf.matmul(tf.matmul(v_final, W_reshaped),
-                          tf.transpose(u_final))[0, 0]
+        def power_iteration(u_i, v_i):
+            v_ip1 = _l2normalize(torch.matmul(u_i, W_reshaped.T))
+            u_ip1 = _l2normalize(torch.matmul(v_ip1, W_reshaped))
+            return u_ip1, v_ip1
+
+        u_final = u
+        v_final = torch.zeros((1, W_reshaped.shape[0]))
+        while num_iters > 0:
+            u_final, v_final = power_iteration(u_final, v_final)
+            num_iters -= 1
+
+        sigma = torch.matmul(torch.matmul(v_final, W_reshaped),
+                             u_final.T)[0, 0]
         W_bar = W_reshaped / sigma
-        with tf.control_dependencies([u.assign(u_final)]):
-            W_bar = tf.reshape(W_bar, W_shape)
-    else:
-        sigma = tf.matmul(tf.matmul(v_final, W_reshaped),
-                          tf.transpose(u_final))[0, 0]
-        W_bar = W_reshaped / sigma
-        W_bar = tf.reshape(W_bar, W_shape)
-        if update_collection != NO_OPS:
-            tf.add_to_collection(update_collection, u.assign(u_final))
-    if with_sigma:
-        return W_bar, sigma
-    else:
-        return W_bar
+        W_bar = torch.reshape(W_bar, W_shape)
+
+        if with_sigma:
+            return W_bar, sigma
+        else:
+            return W_bar
+
+
+class ADN(nn.Module):
+    def __init__(self):
+        super(ADN, self).__init__()
+        self.activation = Prelu(0.2)
+
+    def forward(self, x):
+        x = self.activation(x)
+        x = torch.nn.functional.instance_norm(x, momentum=0.9, eps=1e-05)
+        return x

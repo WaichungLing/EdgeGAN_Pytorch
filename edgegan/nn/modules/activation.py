@@ -25,10 +25,10 @@ def lrelu(x, leak=0.2):
     return torch.maximum(leak * x, x)
 
 
-class Prelu(nn.module):
+class Prelu(nn.Module):
     def __init__(self, leak):
         super(Prelu, self).__init__()
-        self.leak = nn.Parameter(torch.Tensor(leak))
+        self.leak = nn.Parameter(torch.Tensor([leak]))
 
     def forward(self, x):
         return torch.maximum(self.leak * x, x)
