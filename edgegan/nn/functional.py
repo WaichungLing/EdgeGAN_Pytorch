@@ -40,3 +40,12 @@ def generator_ganloss(output):
 def l1loss(output, target, weight):
     return weight * torch.mean(torch.abs(output - target))
 
+def random_blend(a, b, batchsize):
+    alpha = torch.rand(size=(batchsize, 1, 1, 1))
+    return b + alpha * (a - b)
+
+def penalty(synthesized, real, nn_func, batchsize, weight=10.0):
+    assert callable(nn_func)
+    interpolated = random_blend(synthesized, real, batchsize)
+    inte_logit = nn_func(interpolated)
+    return weight * gradient_penalty(inte_logit, interpolated)

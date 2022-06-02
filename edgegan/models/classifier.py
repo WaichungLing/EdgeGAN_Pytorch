@@ -5,9 +5,9 @@ from edgegan.nn.modules import MRU, FullyConnected, mean_pool, conv2d2
 
 
 class Classifier(nn.Module):
-    def __init__(self, sn, num_classes):
+    def __init__(self, sn=True, num_classes=5):
         super(Classifier, self).__init__()
-        self.sn = True
+        self.sn = sn
         self.num_classes = num_classes
         self.size = 64
         self.num_blocks = 1
