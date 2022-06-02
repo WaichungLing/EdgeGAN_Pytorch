@@ -1,10 +1,11 @@
 import os
-from glob import glob
+import torch
+import glob
 from pathlib import Path
-
+from torch.utils.data.dataset import Dataset
+from PIL import Image
+from torchvision import transforms
 import numpy as np
-
-from edgegan.utils import get_image
 
 
 def extension_match_recursive(root, exts):
@@ -15,61 +16,65 @@ def extension_match_recursive(root, exts):
     return result
 
 
-class Dataset:
-    def __init__(self, dataroot, name, size, batchsize, config, num_classes=None, phase='train'):
+def one_hot(labels: torch.Tensor, num_classes: int, dtype: torch.dtype = torch.float, dim: int = 1) -> torch.Tensor:
+    # if `dim` is bigger, add singleton dim at the end
+    if labels.ndim < dim + 1:
+        shape = list(labels.shape) + [1] * (dim + 1 - len(labels.shape))
+        labels = torch.reshape(labels, shape)
+
+    sh = list(labels.shape)
+
+    if sh[dim] != 1:
+        raise AssertionError("labels should have a channel with length equal to one.")
+
+    sh[dim] = num_classes
+
+    o = torch.zeros(size=sh, dtype=dtype, device=labels.device)
+    labels = o.scatter_(dim=dim, index=labels.long(), value=1)
+
+    return labels
+
+
+class dataset(Dataset):
+    def __init__(self, dataroot, dataset, zdim=100, num_classes=5, phase='train'):
         assert phase in ['train', 'test']
-        self.batchsize = batchsize
         self.num_classes = num_classes
-        self.config = config
         self.phase = phase
-        if phase == 'train':
-            if num_classes is not None:
-                self.data = []
-                for i in range(num_classes):
-                    for ext in ['*.png', '*.jpg']:
-                        data_path = os.path.join(
-                            dataroot, name, phase, str(i), ext)
-                        self.data.extend(glob(data_path))
-            else:
-                data_path = os.path.join(
-                    dataroot, name, phase, '*.png')
-                self.data = glob(data_path)
+        self.zdim = zdim
+        self.data = []
+        if num_classes is not None:
+            for i in range(num_classes):
+                i_dir = os.path.join(dataroot, dataset, phase, str(i), '*.png')
+                for filename in glob.glob(i_dir):
+                    self.data.append(filename)
         else:
-            data_path = os.path.join(dataroot, name, phase)
-            self.data = extension_match_recursive(
-                data_path,
-                ['*.png', '*.jpg']
-            )
-            self.data = sorted(self.data)
+            data_path = os.path.join(dataroot, dataset, phase, '*.png')
+            for filename in glob.glob(data_path):
+                self.data.append(filename)
 
         if len(self.data) == 0:
             raise Exception("[!] No data found in '" + data_path + "'")
-        if len(self.data) < self.batchsize:
-            raise Exception(
-                "[!] Entire dataset size is less than the configured batch_size")
-        self.size = min(len(self.data), size)
+        self.size = len(self.data)
+        print("Dataset size: ", self.size)
 
     def shuffle(self):
         np.random.shuffle(self.data)
 
     def __len__(self):
-        return self.size // self.batchsize
+        return self.size
 
     def __getitem__(self, idx):
-        filenames = self.data[idx * self.batchsize: (idx + 1) * self.batchsize]
-        batch = [
-            get_image(filename,
-                      input_height=self.config['input_height'],
-                      input_width=self.config['input_width'],
-                      resize_height=self.config['output_height'],
-                      resize_width=self.config['output_width'],
-                      crop=self.config['crop'],
-                      grayscale=self.config['grayscale']) for filename in filenames]
+        filenames = self.data[idx]
+        image = Image.open(filenames)
 
-        batch_images = np.array(batch).astype(np.float32)
+        transform = transforms.Compose([
+            transforms.ToTensor()
+        ])
+
+        image = transform(image)
 
         if self.phase == 'train':
-            batch_z = np.random.normal(size=(self.batchsize, self.config['z_dim']))
+            z = torch.normal(mean=0.0, std=1.0, size=(self.zdim,))
 
             if self.num_classes is not None:
                 def get_class(filePath):
@@ -77,13 +82,8 @@ class Dataset:
                     start = filePath.rfind("/", 0, end)
                     return int(filePath[start + 1:end])
 
-                batch_classes = [get_class(batch_file)
-                                 for batch_file in filenames]
-                batch_classes = np.array(
-                    batch_classes).reshape((self.batchsize, 1))
-                batch_z = np.concatenate((batch_z, batch_classes), axis=1)
+                onehot = one_hot(torch.tensor(get_class(filenames)), self.num_classes)[0]
 
-        if self.phase == 'test':
-            assert batch_images.shape[0] == len(filenames)
+                z = np.concatenate((z, onehot))
 
-        return (batch_images, batch_z, filenames) if self.phase == 'train' else (batch_images, filenames)
+        return (image, z) if self.phase == 'train' else image

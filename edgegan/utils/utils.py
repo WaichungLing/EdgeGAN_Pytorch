@@ -111,6 +111,3 @@ def transform(image,
 def inverse_transform(images):
     return (images + 1.) / 2.
 
-
-# TODO
-# to_json and make_gif are not included
