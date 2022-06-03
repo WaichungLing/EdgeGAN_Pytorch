@@ -84,14 +84,14 @@ class EdgeGAN(nn.Module):
         return (self.joint_dis_dloss + self.image_dis_dloss + self.edge_dis_dloss 
             + self.edge_gloss + self.image_gloss + self.loss_d_ac + self.zl_loss)
 
-    def train(self, train_dl, epochs=100, batch_size=64):
+    def train(self, train_dl, epochs=100, batch_size=64, device=torch.device("cpu")):
         self.batch_size = batch_size
         optimizer = torch.optim.RMSprop(self.parameters(), lr=1e-4, weight_decay=1e-5)
         start_time = time.time()
 
         for epoch in range(epochs):
             for idx, data in enumerate(train_dl):
-                x, z = data
+                x, z = data.to(device)
                 _ = self.forward(x,z)
                 loss = self.compute_loss()
                 optimizer.zero_grad()
