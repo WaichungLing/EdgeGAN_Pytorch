@@ -1,3 +1,4 @@
+import os
 import time
 import torch
 import torch.nn as nn
@@ -84,7 +85,7 @@ class EdgeGAN(nn.Module):
         return (self.joint_dis_dloss + self.image_dis_dloss + self.edge_dis_dloss 
             + self.edge_gloss + self.image_gloss + self.loss_d_ac + self.zl_loss)
 
-    def train(self, train_dl, epochs=100, batch_size=64):
+    def train(self, train_dl, checkpoint_dir, epochs=100, batch_size=64):
         self.batch_size = batch_size
         optimizer = torch.optim.RMSprop(self.parameters(), lr=1e-4, weight_decay=1e-5)
         start_time = time.time()
@@ -101,4 +102,18 @@ class EdgeGAN(nn.Module):
                 discriminator_err = self.joint_dis_dloss + self.image_dis_dloss + self.edge_dis_dloss
                 generator_err = self.edge_gloss + self.image_gloss
                 print("Epoch: [%2d/%2d] [%4d/%4d], time: %4.4f, joint_dis_dloss: %.8f, joint_dis_gloss: %.8f"
-                      % (epoch, epochs, idx, len(train_dl), time.time() - start_time, 2 * discriminator_err, generator_err))
+                      % (epoch, epochs, idx, len(train_dl)-1, time.time() - start_time, 2 * discriminator_err, generator_err))
+
+            if epoch+1 % 20 == 0:   # save checkpoint every 20 epochs
+                checkpoint_name = "checkpoint"+str(epoch)
+                torch.save({
+                    'epoch': epoch,
+                    'model_state_dict': self.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'joint_dis_dloss': self.joint_dis_dloss,
+                    'image_dis_dloss': self.image_dis_dloss,
+                    'edge_dis_dloss': self.edge_dis_dloss,
+                    'edge_gloss': self.edge_gloss,
+                    'image_gloss': self.image_gloss
+                }, os.path.join(checkpoint_dir, checkpoint_name))
+                print("Saving checkpoint ... Epoch: [%2d/%2d] " % (epoch, epochs))
