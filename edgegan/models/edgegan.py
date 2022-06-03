@@ -9,6 +9,7 @@ from .discriminator import Discriminator
 from .encoder import Encoder
 from .generator import Generator
 from .classifier import Classifier
+import config
 
 class EdgeGAN(nn.Module):
     def __init__(self, image_d_size=128, edge_d_size=128, num_classes=5, z_dim=100): 

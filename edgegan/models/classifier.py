@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-
+import config
 from edgegan.nn.modules import MRU, FullyConnected, mean_pool, conv2d2
 
 

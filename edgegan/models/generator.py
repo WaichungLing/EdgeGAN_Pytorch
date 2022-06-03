@@ -2,6 +2,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import config
 
 class Generator(nn.Module):
     def __init__(self, output_height=64, output_width=64, in_dim=105, input_channels=64, output_channels=3):

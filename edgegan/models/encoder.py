@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import config
 
 class Encoder(nn.Module):
     def __init__(self, input_channels=3, latent_dim=100): 
@@ -20,7 +21,7 @@ class Encoder(nn.Module):
         )
         self.mu = nn.Linear(512, latent_dim)
         self.log_sigma = nn.Linear(512, latent_dim)
-        self.random_normal = torch.normal(mean=0.0, std=1.0, size=(1,latent_dim))
+        self.random_normal = torch.normal(mean=0.0, std=1.0, size=(1,latent_dim)).to(config.device)
 
     def forward(self, x):
         x = self.main(x)
