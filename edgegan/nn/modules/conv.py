@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 
-from . import upsample, mean_pool
+from .upsampling import upsample
+from .pooling import mean_pool
 from .normalization import spectral_normed_weight, ADN
 
 

@@ -1,14 +1,12 @@
-# This is a sample Python script.
+from edgegan.models.edgegan import EdgeGAN
+from edgegan.utils.data.dataset import dataset
+from torch.utils.data import DataLoader
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    train_data = dataset(dataroot="./images", dataset="data")
+    train_dl = DataLoader(dataset=train_data, batch_size=64, shuffle=True)
+
+    edgegan = EdgeGAN()
+    edgegan.train(train_dl)
+
+

@@ -6,7 +6,7 @@ import torch.nn.functional as F
 def get_acgan_loss_focal(real_image_logits_out, real_image_label,
                          disc_image_logits_out, condition,
                          num_classes, ld1=1, ld2=0.5, ld_focal=2.):
-    loss_ac_d = torch.mean((1 - torch.sum(F.softmax(real_image_logits_out) * torch.squeeze(
+    loss_ac_d = torch.mean((1 - torch.sum(F.softmax(real_image_logits_out, dim=1) * torch.squeeze(
         F.one_hot(real_image_label, num_classes)), 1)) ** ld_focal *
                            F.cross_entropy(real_image_logits_out, real_image_label))
     loss_ac_d = ld1 * loss_ac_d

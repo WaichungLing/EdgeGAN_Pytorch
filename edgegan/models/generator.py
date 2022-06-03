@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Generator(nn.Module):
-    def __init__(self, in_dim=105, output_height=64, output_width=128,input_channels=64, output_channels=3):
+    def __init__(self, output_height=64, output_width=64, in_dim=105, input_channels=64, output_channels=3):
         super(Generator,self).__init__()
         self.s_h, self.s_w = output_height, output_width
         self.input_channels, self.output_channels = input_channels, output_channels
@@ -27,21 +27,16 @@ class Generator(nn.Module):
         x = x.reshape(-1, self.input_channels*8, self.s_h16, self.s_w16)
         x = F.instance_norm(x, momentum=0.9, eps=1e-05)
         x = F.relu(x)
-        print(x.size())
         x = self.deconv1(x)
-        print(x.size())
         x = F.instance_norm(x, momentum=0.9, eps=1e-05)
         x = F.relu(x)
         x = self.deconv2(x)
-        print(x.size())
         x = F.instance_norm(x, momentum=0.9, eps=1e-05)
         x = F.relu(x)
         x = self.deconv3(x)
-        print(x.size())
         x = F.instance_norm(x, momentum=0.9, eps=1e-05)
         x = F.relu(x)
         x = self.deconv4(x)
-        print(x.size())
         #x = F.instance_norm(x, momentum=0.9, eps=1e-05)
         x = torch.tanh(x)
         return x
