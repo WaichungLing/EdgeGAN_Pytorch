@@ -12,7 +12,13 @@ class FullyConnected(nn.Module):
 
     def forward(self, input):
         if self.sn:
-            self.mlp.weight = nn.Parameter(spectral_normed_weight(self.mlp.weight, num_iters=1))
+            if self.mlp.weight.is_cuda:
+                pre_weight = self.mlp.weight.cpu()
+                sn_weight = spectral_normed_weight(pre_weight, num_iters = 1)
+                sn_weight = sn_weight.cuda()
+                self.mlp.weight = nn.Parameter(sn_weight)
+            else:
+                self.mlp.weight = nn.Parameter(spectral_normed_weight(self.mlp.weight, num_iters=1))
 
         linear_out = self.mlp(input)
 

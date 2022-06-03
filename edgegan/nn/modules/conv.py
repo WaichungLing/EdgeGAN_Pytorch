@@ -6,19 +6,21 @@ from .pooling import mean_pool
 from .normalization import spectral_normed_weight, ADN
 
 
-def conv2d2(inputs, num_outputs, kernel_size, sn, stride=1):  # no regularizer in pytorch
-
+def conv2d2(inputs, num_outputs, kernel_size, sn, stride=1):
     channel_axis = 1
     input_dim = inputs.shape[channel_axis]
 
     m = nn.Conv2d(input_dim, num_outputs, kernel_size, stride=stride, padding='same')
     torch.nn.init.xavier_uniform_(m.weight)
 
-    # Spectral Normalization
     if sn:
         m.weight = nn.Parameter(spectral_normed_weight(m.weight, num_iters=1))
 
-    conv_out = m(inputs)
+    if inputs.is_cuda:
+        m = m.cuda()
+        conv_out = m(inputs)
+    else:
+        conv_out = m(inputs)
 
     return conv_out
 

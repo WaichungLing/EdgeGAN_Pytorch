@@ -92,7 +92,9 @@ class EdgeGAN(nn.Module):
 
         for epoch in range(epochs):
             for idx, data in enumerate(train_dl):
-                x, z = data.to(device)
+                x, z = data
+                x = x.to(device)
+                z = z.to(device)
                 _ = self.forward(x,z)
                 loss = self.compute_loss()
                 optimizer.zero_grad()
