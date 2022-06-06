@@ -7,7 +7,7 @@ def get_acgan_loss_focal(real_image_logits_out, real_image_label,
                          disc_image_logits_out, condition,
                          num_classes, ld1=1, ld2=0.5, ld_focal=2.):
     real_image_label = torch.argmax(real_image_label, dim=1)
-    condition = real_image_label
+    condition = torch.argmax(condition, dim=1)
     loss_ac_d = torch.mean((1 - torch.sum(F.softmax(real_image_logits_out, dim=1) * torch.squeeze(
         F.one_hot(real_image_label, num_classes)), 1)) ** ld_focal *
                            F.cross_entropy(real_image_logits_out, real_image_label))
@@ -26,9 +26,11 @@ def get_class_loss(logits_out, label, num_classes, ld_focal=2.0):
 
 
 def gradient_penalty(output, on):
+    output = torch.sum(output)
     gradients = torch.autograd.grad(output, [on, ])[0]
-    grad_l2 = torch.sqrt(torch.sum(torch.square(gradients), [1, 2, 3]))
-    return torch.mean((grad_l2-1)**2)
+    first_dim = gradients.shape[0]
+    grad_l2 = torch.sqrt(torch.sum(torch.square(gradients).view(first_dim, -1), dim=1))
+    return torch.mean((grad_l2 - 1) ** 2)
 
 
 def discriminator_ganloss(output, target):
@@ -42,12 +44,13 @@ def generator_ganloss(output):
 def l1loss(output, target, weight):
     return weight * torch.mean(torch.abs(output - target))
 
+
 def random_blend(a, b, batchsize):
     alpha = torch.rand(size=(batchsize, 1, 1, 1))
     return b + alpha * (a - b)
 
+
 def penalty(synthesized, real, nn_func, batchsize, weight=10.0):
-    assert callable(nn_func)
     interpolated = random_blend(synthesized, real, batchsize)
-    inte_logit = nn_func(interpolated)
+    _, inte_logit = nn_func(interpolated)
     return weight * gradient_penalty(inte_logit, interpolated)

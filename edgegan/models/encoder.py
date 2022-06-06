@@ -8,6 +8,7 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.main = nn.Sequential(
             nn.Conv2d(input_channels, 64, kernel_size=4, stride=2, padding=1),
+            nn.ReLU(),
             Residual(input_channels=64, num_filters=128),
             nn.AvgPool2d(kernel_size=2, stride=2),
             Residual(input_channels=128, num_filters=256),
@@ -37,7 +38,7 @@ class Residual(nn.Module):
         super(Residual, self).__init__()
         self.conv1 = nn.Conv2d(input_channels, num_filters, kernel_size=3, stride=1, padding=1, padding_mode='reflect')
         self.conv2 = nn.Conv2d(num_filters, num_filters, kernel_size=3, stride=1, padding=1, padding_mode='reflect')
-        self.shortcut = nn.Conv2d(input_channels, num_filters, kernel_size=1, stride=1)
+        self.shortcut = nn.Conv2d(input_channels, num_filters, kernel_size=1, stride=1, padding_mode='reflect')
 
     def forward(self, x):
         shortcut = self.shortcut(x) 

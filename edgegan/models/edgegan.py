@@ -10,6 +10,8 @@ from .encoder import Encoder
 from .generator import Generator
 from .classifier import Classifier
 import config
+from ..nn.functional import penalty
+
 
 class EdgeGAN(nn.Module):
     def __init__(self, image_d_size=128, edge_d_size=128, num_classes=5, z_dim=100): 
@@ -58,16 +60,13 @@ class EdgeGAN(nn.Module):
         return self.joint_g_output
 
     def compute_loss(self):
-        self.joint_dis_dloss = discriminator_ganloss(self.true_joint_d_output, self.fake_joint_d_output)
-            #+ penalty(self.joint_g_output, self.x, self.joint_discriminator, self.batch_size)
+        self.joint_dis_dloss = discriminator_ganloss(self.true_joint_d_output, self.fake_joint_d_output) + penalty(self.joint_g_output, self.x, self.joint_discriminator, self.batch_size)
         self.joint_dis_gloss = generator_ganloss(self.fake_joint_d_output)
 
-        self.image_dis_dloss = discriminator_ganloss(self.true_image_d_output, self.fake_image_d_output)
-            #+ penalty(self.resized_image_g_output, self.resized_images, self.image_discriminator, self.batch_size)
+        self.image_dis_dloss = discriminator_ganloss(self.true_image_d_output, self.fake_image_d_output) + penalty(self.resized_image_g_output, self.resized_images, self.image_discriminator, self.batch_size)
         self.image_dis_gloss = generator_ganloss(self.fake_image_d_output)
 
-        self.edge_dis_dloss = discriminator_ganloss(self.fake_edge_d_output, self.true_edge_d_output)
-            #+ penalty(self.resized_edge_g_output, self.resized_edges, self.edge_discriminator, self.batch_size)
+        self.edge_dis_dloss = discriminator_ganloss(self.fake_edge_d_output, self.true_edge_d_output) + penalty(self.resized_edge_g_output, self.resized_edges, self.edge_discriminator, self.batch_size)
         self.edge_dis_gloss = generator_ganloss(self.fake_edge_d_output)
 
         self.edge_gloss = self.joint_dis_gloss + self.edge_dis_gloss
