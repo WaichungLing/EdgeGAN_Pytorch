@@ -26,8 +26,10 @@ class Encoder(nn.Module):
     def forward(self, x):
         x = self.main(x)
         x = torch.flatten(x, 1)
-        x = self.mu(x) + self.random_normal * torch.exp(self.log_sigma(x))
-        return x
+        m = self.mu(x)
+        s = self.log_sigma(x)
+        z = m + self.random_normal * torch.exp(s)
+        return z
 
 
 class Residual(nn.Module):

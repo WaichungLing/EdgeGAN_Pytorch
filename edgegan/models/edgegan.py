@@ -75,9 +75,9 @@ class EdgeGAN(nn.Module):
 
         self.loss_g_ac, self.loss_d_ac = get_acgan_loss_focal(
             self.true_image_c_output, 
-            self.z[:,-1].long(),
+            self.z[:,-5:].long(),
             self.fake_image_c_output, 
-            self.z[:,-1].long(),
+            self.z[:,-5:].long(),
             self.num_classes
         )
 
