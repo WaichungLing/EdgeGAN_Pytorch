@@ -11,10 +11,10 @@ def get_acgan_loss_focal(real_image_logits_out, real_image_label,
     condition = torch.argmax(condition, dim=1)
     loss_ac_d = torch.mean((1 - torch.sum(F.softmax(real_image_logits_out, dim=1) * torch.squeeze(
         F.one_hot(real_image_label, num_classes)), 1)) ** ld_focal *
-                           F.cross_entropy(real_image_logits_out, real_image_label))
+                           F.cross_entropy(F.softmax(real_image_logits_out, dim=1), real_image_label))
     loss_ac_d = ld1 * loss_ac_d
     loss_ac_g = torch.mean(
-        F.cross_entropy(disc_image_logits_out, condition))
+        F.cross_entropy(F.softmax(disc_image_logits_out, dim=1), condition))
     loss_ac_g = ld2 * loss_ac_g
     return loss_ac_g, loss_ac_d
 
@@ -51,7 +51,8 @@ def random_blend(a, b, batchsize):
     return b + alpha * (a - b)
 
 
-def penalty(synthesized, real, nn_func, batchsize, weight=10.0):
+def penalty(synthesized, real, nn_func, weight=10.0):
+    batchsize = synthesized.size()[0]
     interpolated = random_blend(synthesized, real, batchsize)
     _, inte_logit = nn_func(interpolated)
     return weight * gradient_penalty(inte_logit, interpolated)
