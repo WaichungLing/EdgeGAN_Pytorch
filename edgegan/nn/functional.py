@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
+import config
 
 
 def get_acgan_loss_focal(real_image_logits_out, real_image_label,
@@ -46,7 +47,7 @@ def l1loss(output, target, weight):
 
 
 def random_blend(a, b, batchsize):
-    alpha = torch.rand(size=(batchsize, 1, 1, 1))
+    alpha = torch.rand(size=(batchsize, 1, 1, 1)).to(config.device)
     return b + alpha * (a - b)
 
 
