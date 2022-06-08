@@ -27,8 +27,7 @@ def get_class_loss(logits_out, label, num_classes, ld_focal=2.0):
 
 
 def gradient_penalty(output, on):
-    output = torch.sum(output)
-    gradients = torch.autograd.grad(output, [on, ])[0]
+    gradients = torch.autograd.grad(output, [on, ], grad_outputs=torch.ones_like(output))[0]
     first_dim = gradients.shape[0]
     grad_l2 = torch.sqrt(torch.sum(torch.square(gradients).view(first_dim, -1), dim=1))
     return torch.mean((grad_l2 - 1) ** 2)
@@ -52,6 +51,8 @@ def random_blend(a, b, batchsize):
 
 
 def penalty(synthesized, real, nn_func, batchsize, weight=10.0):
+    batchsize = synthesized.shape[0]
     interpolated = random_blend(synthesized, real, batchsize)
-    _, inte_logit = nn_func(interpolated)
+    smd, logit = nn_func(interpolated)
+    inte_logit = torch.cat((smd, logit), dim=1)
     return weight * gradient_penalty(inte_logit, interpolated)
