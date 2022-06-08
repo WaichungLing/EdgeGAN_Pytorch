@@ -24,6 +24,16 @@ class Encoder(nn.Module):
         self.log_sigma = nn.Linear(512, latent_dim)
         self.random_normal = torch.normal(mean=0.0, std=1.0, size=(1,latent_dim)).to(config.device)
 
+        def init_weights(m):
+            if type(m) == nn.Conv2d:
+                nn.init.normal_(m.weight, std=0.2)
+                nn.init.zeros_(m.bias)
+        self.main.apply(init_weights)
+        nn.init.normal_(self.mu.weight, std=0.2)
+        nn.init.zeros_(self.mu.bias)
+        nn.init.normal_(self.log_sigma.weight, std=0.2)
+        nn.init.zeros_(self.log_sigma.bias)
+
     def forward(self, x):
         x = self.main(x)
         x = torch.flatten(x, 1)

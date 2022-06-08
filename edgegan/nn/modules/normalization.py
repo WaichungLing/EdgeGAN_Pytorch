@@ -4,14 +4,18 @@ import torch.nn.functional as F
 
 from edgegan.nn.modules.activation import Prelu
 
+def instance_norm(x, eps=1e-5):
+    mean = torch.mean(x, dim=[2,3], keepdim=True)
+    sigma = torch.var(x, dim=[2,3], keepdim=True)
+    return (x - mean) / (torch.sqrt(sigma) + eps)
 
-def norm(input, is_train, norm='batch',
+def norm(input, norm='batch',
          epsilon=1e-5, momentum=0.9):
     assert norm in ['instance', 'batch', None]
     if norm == 'instance':
         eps = 1e-5
-        mean = torch.mean(input, dim=[1,2], keepdims=True)
-        sigma = torch.var(input, dim=[1,2], keepdims=True)
+        mean = torch.mean(input, dim=[2,3], keepdims=True)
+        sigma = torch.var(input, dim=[2,3], keepdims=True)
         normalized = (input - mean) / (torch.sqrt(sigma) + eps)
         out = normalized
     elif norm == 'batch':
