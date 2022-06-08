@@ -61,15 +61,15 @@ class EdgeGAN(nn.Module):
 
     def compute_loss(self):
         self.joint_dis_dloss = discriminator_ganloss(self.true_joint_d_output, self.fake_joint_d_output) + penalty(
-            self.joint_g_output, self.x, self.joint_discriminator, self.batch_size)
+            self.joint_g_output, self.x, self.joint_discriminator)
         self.joint_dis_gloss = generator_ganloss(self.fake_joint_d_output)
 
         self.image_dis_dloss = discriminator_ganloss(self.true_image_d_output, self.fake_image_d_output) + penalty(
-            self.resized_image_g_output, self.resized_images, self.image_discriminator, self.batch_size)
+            self.resized_image_g_output, self.resized_images, self.image_discriminator)
         self.image_dis_gloss = generator_ganloss(self.fake_image_d_output)
 
         self.edge_dis_dloss = discriminator_ganloss(self.fake_edge_d_output, self.true_edge_d_output) + penalty(
-            self.resized_edge_g_output, self.resized_edges, self.edge_discriminator, self.batch_size)
+            self.resized_edge_g_output, self.resized_edges, self.edge_discriminator)
         self.edge_dis_gloss = generator_ganloss(self.fake_edge_d_output)
 
         self.edge_gloss = self.joint_dis_gloss + self.edge_dis_gloss
@@ -88,7 +88,7 @@ class EdgeGAN(nn.Module):
         self.zl_loss = l1loss(self.z[:, :self.z_dim], self.e_output, weight=10.0)
 
         return (self.joint_dis_dloss + self.image_dis_dloss + self.edge_dis_dloss
-                + self.edge_gloss + self.image_gloss + self.loss_g_ac + self.zl_loss)
+                + self.edge_gloss + self.image_gloss + self.loss_d_ac + self.zl_loss)
 
     def train(self, train_dl, checkpoint_dir, epochs=100, batch_size=64, device=torch.device("cpu")):
         self.batch_size = batch_size
