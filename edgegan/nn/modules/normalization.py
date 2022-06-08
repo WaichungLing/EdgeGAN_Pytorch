@@ -72,5 +72,5 @@ class ADN(nn.Module):
 
     def forward(self, x):
         x = self.activation(x)
-        x = torch.nn.functional.instance_norm(x, momentum=0.9, eps=1e-05)
+        # x = torch.nn.functional.instance_norm(x, momentum=0.9, eps=1e-05)
         return x
