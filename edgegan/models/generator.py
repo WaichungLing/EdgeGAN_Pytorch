@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import config
-from nn.modules.normalization import *
+from edgegan.nn.modules.normalization import *
 
 class Generator(nn.Module):
     def __init__(self, output_height=64, output_width=64, in_dim=105, input_channels=64, output_channels=3):
@@ -20,7 +20,7 @@ class Generator(nn.Module):
         self.deconv2 = nn.ConvTranspose2d(input_channels*4, input_channels*2, kernel_size=4, stride=2, padding=1)
         self.deconv3 = nn.ConvTranspose2d(input_channels*2, input_channels, kernel_size=4, stride=2, padding=1)
         self.deconv4 = nn.ConvTranspose2d(input_channels, output_channels, kernel_size=4, stride=2, padding=1)
-        
+
         nn.init.normal_(self.fc.weight, std=0.02)
         nn.init.zeros_(self.fc.bias)
         nn.init.normal_(self.deconv1.weight, std=0.02)

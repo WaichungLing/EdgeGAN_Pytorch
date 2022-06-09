@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import config
-from nn.modules.normalization import *
+from edgegan.nn.modules.normalization import *
 
 class Discriminator(nn.Module):
     def __init__(self, input_height=64, input_width=64, input_channels=3, num_filters=64):
